@@ -1,2 +1,3 @@
-# streamlit_app.py
-Heart Rate Variability Analysis
+# 心拍変動解析WEBアプリ
+心拍変動解析のために、pythonを用いて書いたコードを、StreamlitでWEBアプリにしました。
+FFT、ローレンツプロット、トーンエントロピー解析ができます。
