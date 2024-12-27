@@ -13,7 +13,7 @@ st.write('サイドバーより、解析の手法を選択してください！'
 st.write('')
 st.subheader("＊読みこむExcelデータの設定について＊")
 # 画像を読み込む
-img = Image.open(r"images\エクセルデータについて.png")
+img = Image.open(r"images/エクセルデータについて.png")
 st.image(img, use_container_width=True)
 st.write('※エラーが出る場合、列の名前や、ファイルにシートが複数含まれていないか確認してください。')
 
