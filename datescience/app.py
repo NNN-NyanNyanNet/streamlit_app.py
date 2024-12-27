@@ -7,6 +7,7 @@ from scipy import io
 from scipy.io import wavfile
 import matplotlib.pyplot as plt
 from scipy import signal
+from scipy import interpolate  # 追加
 
 # トップページ
 st.title("心拍変動解析")
@@ -130,6 +131,7 @@ if selected_option == "FFT解析":
                 st.error(f"データに必要な列がありません: {e}")
             except Exception as e:
                 st.error(f"エラーが発生しました: {e}")
+
 
 #ローレンツプロット
 if selected_option == "ローレンツプロット":
