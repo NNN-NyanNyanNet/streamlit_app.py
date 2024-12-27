@@ -1,5 +1,4 @@
 import streamlit as st
-streamlit==1.12.2
 import pandas as pd
 import numpy as np
 from scipy import interpolate, signal
