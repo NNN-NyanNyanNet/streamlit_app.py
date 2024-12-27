@@ -17,6 +17,18 @@ img = Image.open(r"datescience/images/エクセルデータについて.png")
 st.image(img, use_container_width=True)
 st.write('※エラーが出る場合、列の名前や、ファイルにシートが複数含まれていないか確認してください。')
 
+# ファイルパス
+file_path = r"datescience/files/サンプルデータ.xlsx"
+
+# ダウンロードボタンを表示
+with open(file_path, "rb") as f:
+    st.download_button(
+        label="サンプルデータをダウンロード",
+        data=f,
+        file_name="サンプルデータ.xlsx",  # ダウンロード時に表示されるファイル名
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
 # サイドバーで解析方法を選択
 selected_option = st.sidebar.selectbox(
     "解析方法を選択してください^._.^",
