@@ -244,47 +244,47 @@ if selected_option == "トーンエントロピー":
         )
         uploaded_file = st.file_uploader("エクセルファイルをアップロードしてください。", type=["xlsx"])
 
-if uploaded_file:
-    # データを読み込む
-    df = pd.read_excel(uploaded_file)
-    st.write("データプレビュー:", df.head())
-
-    try:
-        # RRIa列のデータを取得
-        rria_data = df['RRIa'].values
-
-        # トーンの計算
-        pi_values = (rria_data[:-1] - rria_data[1:]) / rria_data[:-1] * 100
-        tone = np.mean(pi_values)
-
-        # エントロピーの計算
-        p_i_values, _ = np.histogram(pi_values, bins='auto', density=True)
-        non_zero_p_i_values = p_i_values[p_i_values > 0]
-        entropy = -np.sum(non_zero_p_i_values * np.log2(non_zero_p_i_values))
-
-        # 計算結果を表示
-        st.write(f"Tone (トーン): {tone:.2f}")
-        st.write(f"Entropy (エントロピー): {entropy:.2f}")
-
-        # グラフ描画
-        fig, ax = plt.subplots(2, 1, figsize=(10, 6))
-
-        # トーンの変化を表示
-        ax[0].plot(pi_values, label='PI Values', color='blue')
-        ax[0].set_title('Tone Change')
-        ax[0].legend()
-
-        # エントロピーの変化を表示
-        ax[1].hist(pi_values, bins='auto', density=True, alpha=0.75, color='blue', edgecolor='black')
-        ax[1].set_title('Entropy Change')
-
-        # レイアウト調整
-        plt.tight_layout()
-
-        # Streamlitでグラフを表示
-        st.pyplot(fig)
-
-    except KeyError as e:
-        st.error(f"データに必要な列が見つかりません: {e}")
-    except Exception as e:
-        st.error(f"エラーが発生しました: {e}")
+        if uploaded_file:
+            # データを読み込む
+            df = pd.read_excel(uploaded_file)
+            st.write("データプレビュー:", df.head())
+        
+            try:
+                # RRIa列のデータを取得
+                rria_data = df['RRIa'].values
+        
+                # トーンの計算
+                pi_values = (rria_data[:-1] - rria_data[1:]) / rria_data[:-1] * 100
+                tone = np.mean(pi_values)
+        
+                # エントロピーの計算
+                p_i_values, _ = np.histogram(pi_values, bins='auto', density=True)
+                non_zero_p_i_values = p_i_values[p_i_values > 0]
+                entropy = -np.sum(non_zero_p_i_values * np.log2(non_zero_p_i_values))
+        
+                # 計算結果を表示
+                st.write(f"Tone (トーン): {tone:.2f}")
+                st.write(f"Entropy (エントロピー): {entropy:.2f}")
+        
+                # グラフ描画
+                fig, ax = plt.subplots(2, 1, figsize=(10, 6))
+        
+                # トーンの変化を表示
+                ax[0].plot(pi_values, label='PI Values', color='blue')
+                ax[0].set_title('Tone Change')
+                ax[0].legend()
+        
+                # エントロピーの変化を表示
+                ax[1].hist(pi_values, bins='auto', density=True, alpha=0.75, color='blue', edgecolor='black')
+                ax[1].set_title('Entropy Change')
+        
+                # レイアウト調整
+                plt.tight_layout()
+        
+                # Streamlitでグラフを表示
+                st.pyplot(fig)
+        
+            except KeyError as e:
+                st.error(f"データに必要な列が見つかりません: {e}")
+            except Exception as e:
+                st.error(f"エラーが発生しました: {e}")
