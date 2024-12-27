@@ -12,8 +12,9 @@ st.write('卒業論文で用いた心拍変動解析のコードをwebアプリ�
 st.write('サイドバーより、解析の手法を選択してください！')
 st.write('')
 st.subheader("＊読みこむExcelデータの設定について＊")
-
-st.image(r"C:\Users\nonok\OneDrive\デスクトップ\phython　Scripts\datescience\エクセルデータについて.png", use_container_width=True)
+# 画像を読み込む
+img = Image.open(r'C:\Users\nonok\OneDrive\デスクトップ\phython　Scripts\datescience\エクセルデータについて.png')
+st.image(img, use_container_width=True)
 st.write('※エラーが出る場合、列の名前や、ファイルにシートが複数含まれていないか確認してください。')
 
 # サイドバーで解析方法を選択
