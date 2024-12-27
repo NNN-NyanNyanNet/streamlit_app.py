@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 
 # トップページ
 st.title("心拍変動解析")
-st.write('卒業論文で用いた心拍変動解析のコードをwebアプリにしてみました!')
-st.write('サイドバーより、解析の手法を選択してください！')
+st.write('卒業研究で用いた心拍変動解析のコードをwebアプリにしてみました!')
+st.write('サイドバーより、解析の手法を選択してください('ω')ノ')
 st.write('')
 st.subheader("＊読みこむExcelデータの設定について＊")
 # 画像を読み込む
