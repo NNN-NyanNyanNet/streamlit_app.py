@@ -2,12 +2,9 @@ import streamlit as st
 from PIL import Image
 import pandas as pd
 import numpy as np
-import scipy
-from scipy import io
+from scipy import signal
 from scipy.io import wavfile
 import matplotlib.pyplot as plt
-from scipy import signal
-from scipy import interpolate  # 追加
 
 # トップページ
 st.title("心拍変動解析")
@@ -82,7 +79,7 @@ if selected_option == "FFT解析":
                 filtered_rri = signal.filtfilt(b, a, filtered_rri)
 
                 # ハミングウィンドウ
-                window = signal.hamming(len(filtered_rri))
+                window = np.hamming(len(filtered_rri))  # numpyからインポートして使用
                 filtered_rri_hamming = filtered_rri * window
 
                 # FFT解析
