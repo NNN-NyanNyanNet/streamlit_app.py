@@ -2,7 +2,8 @@ import streamlit as st
 from PIL import Image
 import pandas as pd
 import numpy as np
-from scipy import signal
+import scipy
+from scipy import io
 from scipy.io import wavfile
 import matplotlib.pyplot as plt
 
