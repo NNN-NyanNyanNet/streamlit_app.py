@@ -2,11 +2,9 @@ import streamlit as st
 from PIL import Image
 import pandas as pd
 import numpy as np
-import scipy
-from scipy import io
-from scipy.io import wavfile
+from scipy import signal  # signalモジュールをインポート
+from scipy import interpolate  # interpolateモジュールをインポート
 import matplotlib.pyplot as plt
-from scipy import interpolate  # この行を追加
 
 # トップページ
 st.title("心拍変動解析")
@@ -25,113 +23,111 @@ selected_option = st.sidebar.selectbox(
     ["FFT解析", "ローレンツプロット", "トーンエントロピー"]
 )
 
-#FFT
+# FFT解析
 if selected_option == "FFT解析":
-        st.divider()  # 水平線を挿入
-        st.write("（CURRENT CHOICE）: FFT解析")
+    st.divider()  # 水平線を挿入
+    st.write("（CURRENT CHOICE）: FFT解析")
 
-        st.header('【FFT解析】')
-        st.markdown(
-            """
-            縦列上にTime[s]とRRIaを含むエクセルファイルをアップロードしてください。
-            以下を表示します：
-            - RRI変動とFFTのパワースペクトル
-            - HF値（0.15~0.40 Hz、副交感神経）
-            - LF値（0.04~0.15 Hz、交感神経と副交感神経）
-            - HF/LF値（交感神経活動と副交感神経活動のバランス）
-            - VLF値（0.003~0.04 Hz、体温・熱産生に関与する交感神経活動指標）
-            - 総パワー値（TOTAL, 0.00~0.40 Hz、総自律神経活動指標）
-            """
-        )
-        uploaded_file = st.file_uploader("エクセルファイルをアップロードしてください。", type=["xlsx"])
+    st.header('【FFT解析】')
+    st.markdown(
+        """
+        縦列上にTime[s]とRRIaを含むエクセルファイルをアップロードしてください。
+        以下を表示します：
+        - RRI変動とFFTのパワースペクトル
+        - HF値（0.15~0.40 Hz、副交感神経）
+        - LF値（0.04~0.15 Hz、交感神経と副交感神経）
+        - HF/LF値（交感神経活動と副交感神経活動のバランス）
+        - VLF値（0.003~0.04 Hz、体温・熱産生に関与する交感神経活動指標）
+        - 総パワー値（TOTAL, 0.00~0.40 Hz、総自律神経活動指標）
+        """
+    )
+    uploaded_file = st.file_uploader("エクセルファイルをアップロードしてください。", type=["xlsx"])
 
-        if uploaded_file:
-            st.write("ファイルがアップロードされました！解析を開始します...")
-            # データを読み込み
-            df = pd.read_excel(uploaded_file)
-            st.write("データプレビュー", df.head())
+    if uploaded_file:
+        st.write("ファイルがアップロードされました！解析を開始します...")
+        # データを読み込み
+        df = pd.read_excel(uploaded_file)
+        st.write("データプレビュー", df.head())
 
-            try:
-                # 必要な列を取得
-                timestamps = df["Time[s]"]  # タイムスタンプ
-                rri = df["RRIa"]  # 心拍間隔データ
+        try:
+            # 必要な列を取得
+            timestamps = df["Time[s]"]  # タイムスタンプ
+            rri = df["RRIa"]  # 心拍間隔データ
 
-                # NaN値を除外してデータを抽出
-                valid_indices = ~np.isnan(rri)
-                valid_timestamps = timestamps[valid_indices]
-                valid_rri = rri[valid_indices]
+            # NaN値を除外してデータを抽出
+            valid_indices = ~np.isnan(rri)
+            valid_timestamps = timestamps[valid_indices]
+            valid_rri = rri[valid_indices]
 
-                # リサンプリングのための新しいタイムスタンプを作成
-                new_timestamps = np.arange(valid_timestamps.iloc[0], valid_timestamps.iloc[-1], 0.5)
+            # リサンプリングのための新しいタイムスタンプを作成
+            new_timestamps = np.arange(valid_timestamps.iloc[0], valid_timestamps.iloc[-1], 0.5)
 
-                # スプライン3次補間関数を作成
-                interpolator = interpolate.interp1d(valid_timestamps, valid_rri, kind='cubic', fill_value="extrapolate")
-                resampled_rri = interpolator(new_timestamps)
+            # スプライン3次補間関数を作成
+            interpolator = interpolate.interp1d(valid_timestamps, valid_rri, kind='cubic', fill_value="extrapolate")
+            resampled_rri = interpolator(new_timestamps)
 
-                # 各valid_rriからvalid_rriの平均値を引いた値を計算
-                detrended_rri = resampled_rri - np.mean(resampled_rri)
+            # 各valid_rriからvalid_rriの平均値を引いた値を計算
+            detrended_rri = resampled_rri - np.mean(resampled_rri)
 
-                # ハイパス
-                sampling_rate = 2.0
-                b, a = signal.butter(4, 0.04 / (0.5 * sampling_rate), btype='high')
-                filtered_rri = signal.filtfilt(b, a, detrended_rri)
+            # ハイパス
+            sampling_rate = 2.0
+            b, a = signal.butter(4, 0.04 / (0.5 * sampling_rate), btype='high')
+            filtered_rri = signal.filtfilt(b, a, detrended_rri)
 
-                # ローパス
-                b, a = signal.butter(4, 0.6 / (0.5 * sampling_rate), btype='low')
-                filtered_rri = signal.filtfilt(b, a, filtered_rri)
+            # ローパス
+            b, a = signal.butter(4, 0.6 / (0.5 * sampling_rate), btype='low')
+            filtered_rri = signal.filtfilt(b, a, filtered_rri)
 
-                # ハミングウィンドウ
-                window = np.hamming(len(filtered_rri))  # numpyからインポートして使用
-                filtered_rri_hamming = filtered_rri * window
+            # ハミングウィンドウ
+            window = np.hamming(len(filtered_rri))  # numpyからインポートして使用
+            filtered_rri_hamming = filtered_rri * window
 
-                # FFT解析
-                N = len(filtered_rri_hamming)
-                freq = np.fft.fftfreq(N, d=1/sampling_rate)
-                F = np.fft.fft(filtered_rri_hamming)
-                amp = np.abs(F / (N / 2))
+            # FFT解析
+            N = len(filtered_rri_hamming)
+            freq = np.fft.fftfreq(N, d=1/sampling_rate)
+            F = np.fft.fft(filtered_rri_hamming)
+            amp = np.abs(F / (N / 2))
 
-                # グラフ表示
-                fig, ax = plt.subplots(2, 1, figsize=(8, 6), gridspec_kw={'hspace': 0.7})
-                ax[0].plot(new_timestamps[:len(filtered_rri)], filtered_rri)
-                ax[0].set_title("Filtered RRI")
-                ax[0].set_xlabel("Time (s)")
-                ax[0].set_ylabel("Amplitude")
+            # グラフ表示
+            fig, ax = plt.subplots(2, 1, figsize=(8, 6), gridspec_kw={'hspace': 0.7})
+            ax[0].plot(new_timestamps[:len(filtered_rri)], filtered_rri)
+            ax[0].set_title("Filtered RRI")
+            ax[0].set_xlabel("Time (s)")
+            ax[0].set_ylabel("Amplitude")
 
-                ax[1].plot(freq[1:int(N/2)], amp[1:int(N/2)])
-                ax[1].set_title("FFT Power Spectrum")
-                ax[1].set_xlabel("Frequency (Hz)")
-                ax[1].set_ylabel("Amplitude")
+            ax[1].plot(freq[1:int(N/2)], amp[1:int(N/2)])
+            ax[1].set_title("FFT Power Spectrum")
+            ax[1].set_xlabel("Frequency (Hz)")
+            ax[1].set_ylabel("Amplitude")
 
-                plt.tight_layout(pad=1.0)
-                st.pyplot(fig)
+            plt.tight_layout(pad=1.0)
+            st.pyplot(fig)
 
-                # LF帯域とHF帯域、VLF帯域とトータルパワーの周波数範囲を定義
-                lf_freq_range = (0.04, 0.15)
-                hf_freq_range = (0.15, 0.4)
-                vlf_freq_range = (0.0033, 0.04)
-                total_freq_range = (0, 0.4)
+            # LF帯域とHF帯域、VLF帯域とトータルパワーの周波数範囲を定義
+            lf_freq_range = (0.04, 0.15)
+            hf_freq_range = (0.15, 0.4)
+            vlf_freq_range = (0.0033, 0.04)
+            total_freq_range = (0, 0.4)
 
-                # LF帯域とHF帯域、VLF帯域とトータルパワーを計算
-                lf_power = np.sum(amp[(freq >= lf_freq_range[0]) & (freq <= lf_freq_range[1])])
-                hf_power = np.sum(amp[(freq >= hf_freq_range[0]) & (freq <= hf_freq_range[1])])
-                vlf_power = np.sum(amp[(freq >= vlf_freq_range[0]) & (freq <= vlf_freq_range[1])])
-                total_power = np.sum(amp[(freq >= total_freq_range[0]) & (freq <= total_freq_range[1])])
+            # LF帯域とHF帯域、VLF帯域とトータルパワーを計算
+            lf_power = np.sum(amp[(freq >= lf_freq_range[0]) & (freq <= lf_freq_range[1])])
+            hf_power = np.sum(amp[(freq >= hf_freq_range[0]) & (freq <= hf_freq_range[1])])
+            vlf_power = np.sum(amp[(freq >= vlf_freq_range[0]) & (freq <= vlf_freq_range[1])])
+            total_power = np.sum(amp[(freq >= total_freq_range[0]) & (freq <= total_freq_range[1])])
 
-                # LF/HF比を計算
-                lf_hf_ratio = lf_power / hf_power
+            # LF/HF比を計算
+            lf_hf_ratio = lf_power / hf_power
 
-                st.write(f"LF Power: {lf_power:.2f}")
-                st.write(f"HF Power: {hf_power:.2f}")
-                st.write(f"LF/HF Ratio: {lf_hf_ratio:.2f}")
-                st.write(f"vlf_power: {hf_power:.2f}")
-                st.write(f"total_power: {hf_power:.2f}")
+            st.write(f"LF Power: {lf_power:.2f}")
+            st.write(f"HF Power: {hf_power:.2f}")
+            st.write(f"LF/HF Ratio: {lf_hf_ratio:.2f}")
+            st.write(f"vlf_power: {vlf_power:.2f}")
+            st.write(f"total_power: {total_power:.2f}")
 
-            except KeyError as e:
-                st.error(f"データに必要な列がありません: {e}")
-            except Exception as e:
-                st.error(f"エラーが発生しました: {e}")
-
-
+        except KeyError as e:
+            st.error(f"データに必要な列がありません: {e}")
+        except Exception as e:
+            st.error(f"エラーが発生しました: {e}")
 
 #ローレンツプロット
 if selected_option == "ローレンツプロット":
