@@ -7,6 +7,8 @@ from scipy import interpolate  # interpolateモジュールをインポート
 import matplotlib.pyplot as plt
 
 # トップページ
+st.set_page_config(
+    page_title="心拍変動解析アプリ")
 st.title("心拍変動解析")
 st.write('卒業研究で用いた心拍変動解析のコードをwebアプリにしてみました!')
 st.write('サイドバーより、解析の手法を選択してください！')
